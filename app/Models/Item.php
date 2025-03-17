@@ -26,9 +26,5 @@ class Item extends Model
         'set_items' => 'array'
     ];
 
-    public function borrow(): HasMany{
-        return this->hasMany(Borrow::class, 'item_id');
-    }
-
-
+   
 }

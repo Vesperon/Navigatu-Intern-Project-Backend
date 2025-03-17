@@ -62,33 +62,55 @@ class ItemController extends Controller
 
     }
 
-    public function update(Request $request){
+    public function update(Request $request)
+    {
         $data = Item::where('item_id', $request->item_id)->first();
-
+    
         if (!$data) {
             return response()->json([
                 'message' => "Item not found!",
                 'code' => 404
             ], 404);
         }
-
+    
         $validated = $request->validate([
             'item' => 'sometimes|required|string|max:255',
             'category' => 'sometimes|required|string|max:255',
             'quantity' => 'sometimes|required|integer',
             'tbi_assigned' => 'sometimes|required|string|max:255',
-            'person' => 'sometimes|required|string|max:255',
+            'unit' => 'sometimes|required|string|max:255',
+            'description' => 'sometimes|required|string|max:1000',
+            'property_num' => 'nullable|string|max:255',
+            'serial_num' => 'nullable|string|max:255',
+            'set_items' => 'nullable|array',
+            'set_items.*.property_num' => 'nullable|string|max:255',
+            'set_items.*.serial_num' => 'nullable|string|max:255',
+            'set_items.*.description' => 'nullable|string|max:1000',
         ]);
-
+    
+        // Update main item details
         $data->update($validated);
-
-
-
-        return response([
+    
+        // Handle set items if the unit is 'SET'
+        if ($request->unit === 'SET' && in_array($request->category, ['ICT Equipments', 'Furniture & Appliances'])) {
+            $setItemsData = [];
+    
+            foreach ($request->set_items as $setItem) {
+                $setItemsData[] = [
+                    'property_num' => $setItem['property_num'] ?? null,
+                    'serial_num' => $setItem['serial_num'] ?? null,
+                    'description' => $setItem['description'] ?? '',
+                ];
+            }
+    
+        }
+    
+        return response()->json([
             'message' => "Item updated successfully!",
             'code' => 200
         ]);
     }
+    
 
     public function delete($id){
         $data = Item::where('item_id', $id)->first();
